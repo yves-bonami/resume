@@ -1,69 +1,103 @@
-# Yves Bonami — CV
+# Resume
 
-A static HTML/CSS resume with HTMX skill-category navigation and a Vite dev server.
-There is no frontend component framework or production application server.
+A bilingual resume website built with HTML, CSS and HTMX, with downloadable PDFs. Vite provides a development server and builds static files for deployment.
+
+## Development
+
+Requires Node.js 24 or later and npm.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-Open http://localhost:5173. The Dutch page is at `/`; English is at `/en/`.
-HTML and translation edits reload the page automatically; CSS updates immediately.
+Open http://localhost:5173. Dutch is served at `/` and English at `/en/`.
+Template and translation changes reload the page; CSS updates without a reload.
 
-## Editing
+## Project structure
 
-- `src/resume.html`: shared HTML and Dutch content. Translatable text uses `{{"Dutch text"}}`.
-- `src/translations.en.json`: English translations of the same content.
-- `src/app.css`: appearance, responsive layout and print styling.
-- `public/theme.js`: system theme detection and the saved light/dark choice.
-- `scripts/pages.mjs`: generates the static language and category pages.
+- `src/resume.html`: page layout, smaller sections and include markers.
+- `src/partials/`: navigation, hero, experience, technical skills, soft skills and sidebar. Text inside `{{"..."}}` is translated during generation.
+- `src/translations.en.json`: English translations keyed by Dutch text.
+- `src/app.css`: layout, colors, responsive styles and animation.
+- `src/main.js`: redirects older language-query links.
+- `public/theme.js`: theme selection and persistence.
+- `public/`: profile photo, downloadable PDFs and other static assets.
+- `scripts/pages.mjs`: generates language and skill-category pages.
+- `scripts/build_resume_pdf.py`: creates both PDFs from the same content.
+- `vite.config.js`: development watching and static build configuration.
 
-Skill links use HTMX to replace only the skill widget. Each link also opens a full
-static page normally when JavaScript is disabled. Language links are normal page
-links. HTMX is served locally; no CDN or external service is needed.
+HTML partials are included with `<!-- include:name -->` markers at build time. Changes to each partial trigger the same live reload as the main template.
 
-Root `index.html`, `en/`, `skills/`, and `public/vendor/` are generated.
-Edit the template and translations, rather than these generated files.
+The root `index.html`, `en/`, `skills/` and `public/vendor/` are generated. Edit source files rather than generated pages.
 
-## Checks and build
+## How HTMX is used
 
-```sh
-npm run check
-npm run build
-npm run preview
+HTMX progressively enhances the technical-skill category links. The attributes are generated in `render()` in `scripts/pages.mjs`; the widget itself lives in `src/partials/skills.html`.
+
+For example, selecting Software Design on the Dutch page:
+
+```html
+<a
+  href="/skills/design/#vaardigheden"
+  hx-get="/skills/design/"
+  hx-select="#skill-widget"
+  hx-target="#skill-widget"
+  hx-swap="outerHTML"
+  hx-push-url="/skills/design/#vaardigheden"
+>
+  Softwareontwerp
+</a>
 ```
 
-Deploy the contents of `dist/` to a static host. Both PDFs and the profile photo
-are included. No SPA fallback is required; directory index pages must be served.
+1. `hx-get` requests a complete static category page.
+2. `hx-select` extracts its `#skill-widget` element.
+3. `hx-target` and `hx-swap` replace the current widget, including the active category link.
+4. `hx-push-url` updates the address and browser history.
+
+Without JavaScript, `href` navigates to the same category as a normal page. The generator writes six category pages per language, plus the two language landing pages. No application server is needed.
+
+HTMX is copied from the installed npm package to `public/vendor/` during generation. Language switching, PDF downloads and theme selection do not use HTMX.
+
+## Formatting and checks
+
+```sh
+npm run format
+npm run format:check
+npm run check
+```
+
+Prettier formats HTML, CSS, JavaScript, JSON, Markdown and YAML. To format the Python PDF generator, run `uvx black scripts/build_resume_pdf.py` (requires uv).
+
+The page checks verify routes, translations, category links and shared PDF content.
 
 ## PDFs
 
-Both PDFs use the exact content of the corresponding HTML version, including
-every skill category.
-
-One-time setup:
+PDF generation requires Python 3.12 or later, fontconfig and DejaVu Sans fonts.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r scripts/pdf-requirements.txt
+npm run pdf
 ```
 
-After changing content:
+Regenerate the PDFs after content or photo changes. Both languages use the corresponding website text and include every skill category. Output files are written to `public/`.
+
+## Build and deployment
 
 ```sh
-npm run pdf
 npm run build
+npm run preview
 ```
 
-Downloads: `public/Yves_Bonami_CV.pdf` and `public/Yves_Bonami_CV_EN.pdf`.
-The generator uses DejaVu Sans through fontconfig.
+Deploy `dist/` to a static host that serves directory index pages. It includes both languages, PDFs and the profile photo.
 
-The previous Svelte project is backed up beside this project as
-`../cv-web-before-htmx.tar.gz`.
+GitHub Actions rebuilds the PDFs and website on pushes to `main`, then deploys to GitHub Pages. The workflow sets `SITE_BASE` to the repository path.
 
-## GitHub Pages
+For deployment under a subdirectory:
 
-GitHub Actions rebuilds both PDFs and the static site on pushes to `main`, then deploys `dist/` to Pages.
-For a project site, `SITE_BASE=/resume/ npm run build` prefixes all internal links and HTMX requests.
-Run `npm run generate` afterwards to restore root-relative development pages.
+```sh
+SITE_BASE=/resume/ npm run build
+```
+
+`SITE_BASE` must start and end with `/`. It prefixes internal links and HTMX requests. Run `npm run generate` afterwards to restore root-relative development pages.

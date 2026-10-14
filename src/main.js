@@ -1,4 +1,3 @@
-
 // Keep bookmarks from the previous language selector working.
 const lang = new URLSearchParams(location.search).get('lang');
 const base = import.meta.env.BASE_URL;

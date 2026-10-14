@@ -2,9 +2,13 @@
   const root = document.documentElement;
   const system = matchMedia('(prefers-color-scheme: dark)');
   let choice;
-  try { choice = localStorage.getItem('cv-theme'); } catch {}
+  try {
+    choice = localStorage.getItem('cv-theme');
+  } catch {}
   if (!['light', 'dark'].includes(choice)) choice = null;
-  const apply = theme => { root.dataset.theme = theme; };
+  const apply = (theme) => {
+    root.dataset.theme = theme;
+  };
   apply(choice ?? (system.matches ? 'dark' : 'light'));
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -22,15 +26,22 @@
     button.addEventListener('click', () => {
       choice = root.dataset.theme === 'dark' ? 'light' : 'dark';
       apply(choice);
-      try { localStorage.setItem('cv-theme', choice); } catch {}
+      try {
+        localStorage.setItem('cv-theme', choice);
+      } catch {}
       sync();
     });
     system.addEventListener('change', () => {
-      if (!choice) { apply(system.matches ? 'dark' : 'light'); sync(); }
+      if (!choice) {
+        apply(system.matches ? 'dark' : 'light');
+        sync();
+      }
     });
-    window.addEventListener('storage', event => {
+    window.addEventListener('storage', (event) => {
       if (event.key !== 'cv-theme') return;
-      choice = ['light', 'dark'].includes(event.newValue) ? event.newValue : null;
+      choice = ['light', 'dark'].includes(event.newValue)
+        ? event.newValue
+        : null;
       apply(choice ?? (system.matches ? 'dark' : 'light'));
       sync();
     });

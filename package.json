@@ -9,9 +9,12 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "generate": "node scripts/pages.mjs",
     "check": "node scripts/check-pages.mjs",
-    "pdf": ".venv/bin/python scripts/build_resume_pdf.py nl && .venv/bin/python scripts/build_resume_pdf.py en"
+    "pdf": ".venv/bin/python scripts/build_resume_pdf.py nl && .venv/bin/python scripts/build_resume_pdf.py en",
+    "format": "prettier --write \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/theme.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\"",
+    "format:check": "prettier --check \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/theme.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\""
   },
   "devDependencies": {
+    "prettier": "3.9.10",
     "vite": "^8.3.4"
   },
   "dependencies": {
