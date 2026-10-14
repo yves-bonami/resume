@@ -17,8 +17,8 @@ Template and translation changes reload the page; CSS updates without a reload.
 ## Project structure
 
 - `src/resume.html`: page layout, smaller sections and include markers.
-- `src/partials/`: navigation, hero, experience, technical skills, soft skills and sidebar. Text inside `{{"..."}}` is translated during generation.
-- `src/translations.en.json`: English translations keyed by Dutch text.
+- `src/partials/`: navigation, hero, experience, technical skills, soft skills and sidebar. Translation markers such as `{{profile.summary}}` are resolved during generation.
+- `src/locales/nl.json` and `src/locales/en.json`: Dutch and English text, indexed by stable keys such as `profile.summary`.
 - `src/app.css`: layout, colors, responsive styles and animation.
 - `src/main.js`: redirects older language-query links.
 - `public/theme.js`: theme selection and persistence.
@@ -30,6 +30,12 @@ Template and translation changes reload the page; CSS updates without a reload.
 HTML partials are included with `<!-- include:name -->` markers at build time. Changes to each partial trigger the same live reload as the main template.
 
 The root `index.html`, `en/`, `skills/` and `public/vendor/` are generated. Edit source files rather than generated pages.
+
+## Translations
+
+Use the same key in both locale files and reference it in HTML with `{{key.name}}`. Edit the value to change wording; keep the key stable. Store plain text in translations; the generator escapes HTML characters.
+
+`npm run check` verifies that both locales have the same keys and nonempty text. Missing keys also fail page generation and PDF generation instead of falling back to another language. Locale edits trigger live reload.
 
 ## How HTMX is used
 

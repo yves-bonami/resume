@@ -3,20 +3,13 @@
 <div class="layout">
   <main>
     <section id="samenvatting">
-      <h2>{{"Profiel"}}</h2>
-      <p class="summary">
-        {{"Senior .NET Software Engineer met twaalf jaar ervaring in
-        backendontwikkeling, met sterke expertise in Industry 4.0 en IIoT. Bouwt
-        onderhoudbare applicaties, API’s en integraties die machines,
-        dataplatformen en bedrijfssystemen verbinden. Combineert hands-on
-        development met een sterke interesse in softwarearchitectuur,
-        kennisdeling en mentoring."}}
-      </p>
+      <h2>{{sections.profile}}</h2>
+      <p class="summary">{{profile.summary}}</p>
     </section>
     <!-- include:experience -->
     <!-- include:skills -->
     <section id="tools">
-      <h2>Tools</h2>
+      <h2>{{sections.tools}}</h2>
       <div class="tags">
         <span class="tag">Rider</span>
         <span class="tag">Visual Studio</span>
@@ -31,29 +24,29 @@
     </section>
     <!-- include:soft-skills -->
     <section id="opleiding">
-      <h2>{{"Opleiding"}}</h2>
+      <h2>{{sections.education}}</h2>
       <div class="simple">
         <div>
-          <h3>{{"Bachelor Toegepaste Informatica"}}</h3>
-          <p class="scope">{{"HOGENT · Gent, België"}}</p>
+          <h3>{{education.degree}}</h3>
+          <p class="scope">{{education.institution}}</p>
         </div>
         <span class="date">2014</span>
       </div>
     </section>
     <section id="talen">
-      <h2>{{"Talen"}}</h2>
+      <h2>{{sections.languages}}</h2>
       <div class="languages">
         <div class="language">
-          <strong>{{"Nederlands"}}</strong>
-          <span>{{"Moedertaal"}}</span>
+          <strong>{{languages.dutch}}</strong>
+          <span>{{languages.native}}</span>
         </div>
         <div class="language">
-          <strong>{{"Engels"}}</strong>
-          <span>{{"Vloeiend"}}</span>
+          <strong>{{languages.english}}</strong>
+          <span>{{languages.fluent}}</span>
         </div>
         <div class="language">
-          <strong>{{"Frans"}}</strong>
-          <span>{{"Basis"}}</span>
+          <strong>{{languages.french}}</strong>
+          <span>{{languages.basic}}</span>
         </div>
       </div>
     </section>

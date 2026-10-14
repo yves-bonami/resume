@@ -23,20 +23,23 @@ const partialFiles = Object.fromEntries(
 );
 
 const templateFile = resolve(root, 'src/resume.html');
-const translationsFile = resolve(root, 'src/translations.en.json');
+const localeFiles = {
+  nl: resolve(root, 'src/locales/nl.json'),
+  en: resolve(root, 'src/locales/en.json'),
+};
 
 export const sourceFiles = [
   templateFile,
-  translationsFile,
+  ...Object.values(localeFiles),
   ...Object.values(partialFiles),
 ];
 export const categories = [
-  ['languages', 'Talen & frameworks'],
-  ['databases', 'Databases'],
-  ['integration', 'API’s & integratie'],
-  ['design', 'Softwareontwerp'],
-  ['platform', 'Platform & DevOps'],
-  ['quality', 'Testing & kwaliteit'],
+  ['languages', 'skills.languages'],
+  ['databases', 'skills.databases'],
+  ['integration', 'skills.integration'],
+  ['design', 'skills.design'],
+  ['platform', 'skills.platform'],
+  ['quality', 'skills.quality'],
 ];
 const escapeHtml = (value) =>
   value
@@ -50,9 +53,20 @@ export function categoryUrl(lang, index) {
   return `${lang === 'en' ? '/en' : ''}/skills/${categories[index][0]}/`;
 }
 
-function createTranslator(lang) {
-  const translations = JSON.parse(readFileSync(translationsFile, 'utf8'));
-  return (value) => (lang === 'en' ? (translations[value] ?? value) : value);
+export function createTranslator(lang) {
+  if (!Object.hasOwn(localeFiles, lang)) throw new Error('Unknown language');
+  const translations = JSON.parse(readFileSync(localeFiles[lang], 'utf8'));
+  return (key) => {
+    const value = translations[key];
+    if (
+      !Object.hasOwn(translations, key) ||
+      typeof value !== 'string' ||
+      !value.trim()
+    ) {
+      throw new Error(`Missing ${lang} translation: ${key}`);
+    }
+    return value;
+  };
 }
 
 function readTemplate() {
@@ -74,8 +88,8 @@ function selectSkills(html, selected) {
 }
 
 function translateContent(html, translate) {
-  return html.replace(/\{\{("(?:[^"\\]|\\.)*")\}\}/g, (_, key) =>
-    escapeHtml(translate(JSON.parse(key.replace(/\s*\n\s*/g, ' ')))),
+  return html.replace(/\{\{([\w.]+)\}\}/g, (_, key) =>
+    escapeHtml(translate(key)),
   );
 }
 
@@ -95,7 +109,7 @@ function renderSkillNavigation(lang, selected, translate) {
       >${escapeHtml(translate(label))}</a>`;
     })
     .join('');
-  return `<nav class="skill-tabs" aria-label="${escapeHtml(translate('Technische categorieën'))}">${tabs}</nav>`;
+  return `<nav class="skill-tabs" aria-label="${escapeHtml(translate('skills.navigation'))}">${tabs}</nav>`;
 }
 
 function applyBasePath(html) {
@@ -105,12 +119,9 @@ function applyBasePath(html) {
   );
 }
 
-function renderDocument(lang, body) {
-  const title = `Yves Bonami — ${lang === 'en' ? 'Resume' : 'CV'}`;
-  const description =
-    lang === 'en'
-      ? 'Senior .NET Software Engineer with expertise in Industry 4.0 and IIoT.'
-      : 'Senior .NET Software Engineer met sterke expertise in Industry 4.0 en IIoT.';
+function renderDocument(lang, body, translate) {
+  const title = `Yves Bonami — ${escapeHtml(translate('meta.title'))}`;
+  const description = translate('meta.description');
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -149,7 +160,7 @@ export function render(lang, selected = 0) {
       renderSkillNavigation(lang, selected, translate),
     );
 
-  return renderDocument(lang, applyBasePath(body));
+  return renderDocument(lang, applyBasePath(body), translate);
 }
 
 export function generatePages() {

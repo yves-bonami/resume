@@ -10,13 +10,13 @@
       />
       Yves Bonami
     </a>
-    <nav class="top-links" aria-label='{{"Hoofdnavigatie"}}'>
-      <a href="#ervaring">{{"Ervaring"}}</a>
-      <a href="#vaardigheden">{{"Vaardigheden"}}</a>
-      <a href="mailto:yves.bonami@dev.run">{{"Contact"}}</a>
+    <nav class="top-links" aria-label="{{nav.label}}">
+      <a href="#ervaring">{{nav.experience}}</a>
+      <a href="#vaardigheden">{{nav.skills}}</a>
+      <a href="mailto:yves.bonami@dev.run">{{nav.contact}}</a>
     </nav>
     <div class="nav-controls">
-      <span class="language-switch" aria-label='{{"Taal"}}'>
+      <span class="language-switch" aria-label="{{nav.language}}">
         <a href="/" lang="nl" __NL_CURRENT__>NL</a>
         <a href="/en/" lang="en" __EN_CURRENT__>EN</a>
       </span>
@@ -25,10 +25,10 @@
         class="theme-toggle"
         type="button"
         hidden
-        aria-label='{{"Wissel kleurthema"}}'
+        aria-label="{{theme.toggle}}"
         aria-pressed="false"
-        data-light-label='{{"Lichte modus inschakelen"}}'
-        data-dark-label='{{"Donkere modus inschakelen"}}'
+        data-light-label="{{theme.light}}"
+        data-dark-label="{{theme.dark}}"
       >
         <svg
           class="theme-moon"

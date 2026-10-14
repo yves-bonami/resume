@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  createTranslator,
   categories,
   categoryUrl,
   generatePages,
@@ -9,6 +10,39 @@ import {
   root,
   basePath,
 } from './pages.mjs';
+
+const dutch = JSON.parse(
+  readFileSync(resolve(root, 'src/locales/nl.json'), 'utf8'),
+);
+const english = JSON.parse(
+  readFileSync(resolve(root, 'src/locales/en.json'), 'utf8'),
+);
+assert.deepEqual(
+  Object.keys(english).sort(),
+  Object.keys(dutch).sort(),
+  'Locales must contain the same translation keys',
+);
+const pdfKeys = [
+  ...readFileSync(
+    resolve(root, 'scripts/build_resume_pdf.py'),
+    'utf8',
+  ).matchAll(/\btr\("([\w.]+)"\)/g),
+].map((match) => match[1]);
+for (const lang of ['nl', 'en']) {
+  const translate = createTranslator(lang);
+  for (const key of new Set([...Object.keys(dutch), ...pdfKeys])) {
+    assert.match(
+      key,
+      /^[a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9]*)+$/,
+      `Invalid translation key: ${key}`,
+    );
+    assert.ok(translate(key).trim(), `Empty ${lang} translation: ${key}`);
+  }
+  assert.throws(
+    () => translate('missing.translation'),
+    new RegExp(`Missing ${lang} translation: missing\\.translation`),
+  );
+}
 
 assert.equal(generatePages().length, 14);
 for (const lang of ['nl', 'en']) {
@@ -61,5 +95,5 @@ assert.ok(
     !pkg.devDependencies?.['@sveltejs/vite-plugin-svelte'],
 );
 console.log(
-  'Verified 14 static routes, both translations, HTMX links, no-JS category pages, and shared PDF content.',
+  'Verified matching locale keys, strict translation lookup, 14 static routes, both translations, HTMX links, no-JS category pages, and shared PDF content.',
 );

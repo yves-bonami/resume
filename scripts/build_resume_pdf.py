@@ -14,11 +14,14 @@ import json, re, sys
 root = Path(__file__).resolve().parents[1]
 lang = sys.argv[1] if len(sys.argv) > 1 else "nl"
 assert lang in ("nl", "en")
-translations = json.loads((root / "src/translations.en.json").read_text())
+translations = json.loads((root / f"src/locales/{lang}.json").read_text())
 
 
-def tr(value):
-    return translations.get(value, value) if lang == "en" else value
+def tr(key):
+    value = translations.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"Missing {lang} translation: {key}")
+    return value
 
 
 source = subprocess.check_output(
@@ -167,9 +170,9 @@ for i, el in enumerate(
             thickness=0,
         )
 y -= 49
-heading(tr("Profiel"))
+heading(tr("sections.profile"))
 para(escape(text(soup.select_one(".summary"))), gap=3)
-heading(tr("Werkervaring"))
+heading(tr("sections.experience"))
 jobs = soup.select("#ervaring .job")
 for job in jobs[:2]:
     draw_job(job)
@@ -184,10 +187,10 @@ c.setFillColor(accent)
 c.setFont("Body", 10)
 c.drawRightString(x + width, y, "Senior .NET Software Engineer")
 y -= 7
-heading(tr("Werkervaring (vervolg)"))
+heading(tr("pdf.experienceContinued"))
 for job in jobs[2:]:
     draw_job(job)
-heading(tr("Technische vaardigheden"))
+heading(tr("sections.technicalSkills"))
 groups = soup.select("#vaardigheden .skill-panel")
 label_width = (
     max(pdfmetrics.stringWidth(text(group.h3), "Bold", 9.2) for group in groups) + 14
@@ -199,9 +202,9 @@ for group in groups:
     c.setFillColor(muted)
     c.drawString(x, y - 9.2, label)
     para(escape(values), "small", left=label_width, gap=6)
-heading(tr("Tools"))
+heading(tr("sections.tools"))
 para("  |  ".join(escape(text(t)) for t in soup.select("#tools .tag")), "small")
-heading(tr("Soft skills"))
+heading(tr("sections.softSkills"))
 items = soup.select("#soft-skills li")
 col = (width - 12) / 2
 for i in range(0, len(items), 2):
@@ -224,7 +227,7 @@ for i in range(0, len(items), 2):
         c.drawPath(check)
         p.drawOn(c, xx + 20, y - (height + h) / 2)
     y -= height + 8
-heading(tr("Opleiding & talen"))
+heading(tr("pdf.educationLanguages"))
 edu = soup.select_one("#opleiding")
 para(
     "<b>"

@@ -85,7 +85,7 @@
             <circle cx="12" cy="10" r="2.5" />
           </svg>
         </span>
-        <span class="contact-label">{{"Vorselaar, België"}}</span>
+        <span class="contact-label">{{contact.location}}</span>
       </span>
       <a class="contact-item" href="mailto:yves.bonami@dev.run">
         <span class="contact-icon" aria-hidden="true">
@@ -155,7 +155,7 @@
     </div>
     <div class="actions">
       <a class="button" href="mailto:yves.bonami@dev.run">
-        {{"Neem contact op"}}
+        {{actions.contact}}
       </a>
       <a
         class="button secondary"
@@ -163,8 +163,8 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{"Download cv"}}
-        <span class="sr-only">{{" (opent in een nieuw tabblad)"}}</span>
+        {{actions.download}}
+        <span class="sr-only">{{actions.newTab}}</span>
       </a>
     </div>
   </div>
