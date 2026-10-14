@@ -1,0 +1,20 @@
+{
+  "name": "yves-resume",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "generate": "node scripts/pages.mjs",
+    "check": "node scripts/check-pages.mjs",
+    "pdf": ".venv/bin/python scripts/build_resume_pdf.py nl && .venv/bin/python scripts/build_resume_pdf.py en"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "htmx.org": "^2.0.11"
+  }
+}

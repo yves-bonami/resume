@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+
+.venv/
+# Generated from src/resume.html and translations
+/index.html
+/en/
+/skills/
+/public/vendor/
