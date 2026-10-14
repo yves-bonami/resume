@@ -33,7 +33,7 @@ The root `index.html`, `en/`, `skills/` and `public/vendor/` are generated. Edit
 
 ## How HTMX is used
 
-HTMX progressively enhances the technical-skill category links. The attributes are generated in `render()` in `scripts/pages.mjs`; the widget itself lives in `src/partials/skills.html`.
+HTMX progressively enhances the technical-skill category links. The attributes are generated in `renderSkillNavigation()` in `scripts/pages.mjs`; the widget itself lives in `src/partials/skills.html`.
 
 For example, selecting Software Design on the Dutch page:
 

@@ -22,9 +22,12 @@ const partialFiles = Object.fromEntries(
   ]),
 );
 
+const templateFile = resolve(root, 'src/resume.html');
+const translationsFile = resolve(root, 'src/translations.en.json');
+
 export const sourceFiles = [
-  resolve(root, 'src/resume.html'),
-  resolve(root, 'src/translations.en.json'),
+  templateFile,
+  translationsFile,
   ...Object.values(partialFiles),
 ];
 export const categories = [
@@ -35,7 +38,7 @@ export const categories = [
   ['platform', 'Platform & DevOps'],
   ['quality', 'Testing & kwaliteit'],
 ];
-const escape = (value) =>
+const escapeHtml = (value) =>
   value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -47,12 +50,36 @@ export function categoryUrl(lang, index) {
   return `${lang === 'en' ? '/en' : ''}/skills/${categories[index][0]}/`;
 }
 
-export function render(lang, selected = 0) {
-  if (!['nl', 'en'].includes(lang)) throw new Error('Unknown language');
-  if (selected !== null && !categories[selected])
-    throw new Error('Unknown category');
-  const translations = JSON.parse(readFileSync(sourceFiles[1], 'utf8'));
-  const t = (value) => (lang === 'en' ? (translations[value] ?? value) : value);
+function createTranslator(lang) {
+  const translations = JSON.parse(readFileSync(translationsFile, 'utf8'));
+  return (value) => (lang === 'en' ? (translations[value] ?? value) : value);
+}
+
+function readTemplate() {
+  return readFileSync(templateFile, 'utf8').replace(
+    /<!-- include:([a-z-]+) -->/g,
+    (_, name) => {
+      if (!partialFiles[name]) throw new Error(`Unknown partial: ${name}`);
+      return readFileSync(partialFiles[name], 'utf8');
+    },
+  );
+}
+
+function selectSkills(html, selected) {
+  return html.replace(
+    /<!-- skill:(\d+) -->([\s\S]*?)<!-- \/skill:\1 -->/g,
+    (_, index, content) =>
+      selected === null || Number(index) === selected ? content : '',
+  );
+}
+
+function translateContent(html, translate) {
+  return html.replace(/\{\{("(?:[^"\\]|\\.)*")\}\}/g, (_, key) =>
+    escapeHtml(translate(JSON.parse(key.replace(/\s*\n\s*/g, ' ')))),
+  );
+}
+
+function renderSkillNavigation(lang, selected, translate) {
   // Fetch a full static page; HTMX extracts and replaces only the skill widget.
   const tabs = categories
     .map(([, label], index) => {
@@ -65,22 +92,52 @@ export function render(lang, selected = 0) {
         hx-swap="outerHTML"
         hx-push-url="${url}#vaardigheden"
         ${index === selected ? 'class="active" aria-current="page"' : ''}
-      >${escape(t(label))}</a>`;
+      >${escapeHtml(translate(label))}</a>`;
     })
     .join('');
-  const body = readFileSync(sourceFiles[0], 'utf8')
-    .replace(/<!-- include:([a-z-]+) -->/g, (_, name) => {
-      if (!partialFiles[name]) throw new Error(`Unknown partial: ${name}`);
-      return readFileSync(partialFiles[name], 'utf8');
-    })
-    .replace(
-      /<!-- skill:(\d+) -->([\s\S]*?)<!-- \/skill:\1 -->/g,
-      (_, index, content) =>
-        selected === null || Number(index) === selected ? content : '',
-    )
-    .replace(/\{\{("(?:[^"\\]|\\.)*")\}\}/g, (_, key) =>
-      escape(t(JSON.parse(key.replace(/\s*\n\s*/g, ' ')))),
-    )
+  return `<nav class="skill-tabs" aria-label="${escapeHtml(translate('Technische categorieën'))}">${tabs}</nav>`;
+}
+
+function applyBasePath(html) {
+  return html.replace(
+    /(href|src|hx-get|hx-push-url)="\/(?!\/)([^"]*)"/g,
+    (_, attribute, path) => `${attribute}="${basePath}${path}"`,
+  );
+}
+
+function renderDocument(lang, body) {
+  const title = `Yves Bonami — ${lang === 'en' ? 'Resume' : 'CV'}`;
+  const description =
+    lang === 'en'
+      ? 'Senior .NET Software Engineer with expertise in Industry 4.0 and IIoT.'
+      : 'Senior .NET Software Engineer met sterke expertise in Industry 4.0 en IIoT.';
+  return `<!doctype html>
+<html lang="${lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="${escapeHtml(description)}">
+<title>${title}</title>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/src/app.css">
+<script src="/vendor/htmx.min.js" defer></script>
+<script type="module" src="/src/main.js"></script>
+</head>
+<body>${body}</body>
+</html>
+`;
+}
+
+export function render(lang, selected = 0) {
+  if (!['nl', 'en'].includes(lang)) throw new Error('Unknown language');
+  if (selected !== null && !categories[selected])
+    throw new Error('Unknown category');
+
+  const translate = createTranslator(lang);
+  const template = readTemplate();
+  const selectedContent = selectSkills(template, selected);
+  const translatedContent = translateContent(selectedContent, translate);
+  const body = translatedContent
     .replaceAll(
       '__PDF_URL__',
       lang === 'en' ? '/Yves_Bonami_CV_EN.pdf' : '/Yves_Bonami_CV.pdf',
@@ -89,28 +146,10 @@ export function render(lang, selected = 0) {
     .replaceAll('__EN_CURRENT__', lang === 'en' ? 'aria-current="page"' : '')
     .replaceAll(
       '__SKILL_TABS__',
-      `<nav class="skill-tabs" aria-label="${escape(t('Technische categorieën'))}">${tabs}</nav>`,
+      renderSkillNavigation(lang, selected, translate),
     );
-  const routedBody = body.replace(
-    /(href|src|hx-get|hx-push-url)="\/(?!\/)([^"]*)"/g,
-    (_, attribute, path) => `${attribute}="${basePath}${path}"`,
-  );
-  const title = `Yves Bonami — ${lang === 'en' ? 'Resume' : 'CV'}`;
-  return `<!doctype html>
-<html lang="${lang}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="${escape(lang === 'en' ? 'Senior .NET Software Engineer with expertise in Industry 4.0 and IIoT.' : 'Senior .NET Software Engineer met sterke expertise in Industry 4.0 en IIoT.')}">
-<title>${title}</title>
-<script src="/theme.js"></script>
-<link rel="stylesheet" href="/src/app.css">
-<script src="/vendor/htmx.min.js" defer></script>
-<script type="module" src="/src/main.js"></script>
-</head>
-<body>${routedBody}</body>
-</html>
-`;
+
+  return renderDocument(lang, applyBasePath(body));
 }
 
 export function generatePages() {
