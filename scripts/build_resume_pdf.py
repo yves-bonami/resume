@@ -362,24 +362,45 @@ class ResumePdf:
 
 def verify_pdf(pdf_path, document, language):
     reader = PdfReader(pdf_path)
-    assert len(reader.pages) == PAGE_COUNT
-    extracted_text = " ".join(
-        " ".join(page.extract_text().split()) for page in reader.pages
+    assert len(reader.pages) == PAGE_COUNT, "Unexpected PDF page count"
+
+    def normalize(value):
+        return " ".join(value.replace("—", "-").split())
+
+    extracted_text = " ".join(normalize(page.extract_text()) for page in reader.pages)
+    content = document.select(
+        "#profiel h1, #profiel .role, .contact-label, .summary, "
+        ".job h3, .job .company, .job-location, .date, .scope, .job li, "
+        ".tag, #soft-skills li, #opleiding h3, .language strong, .language span"
     )
-    for element in document.select(
-        ".summary, .job .scope, .job li, .tag, #soft-skills li"
-    ):
-        value = " ".join(element_text(element).split())
-        assert value in extracted_text, value
-    assert (
-        "complex legacy integration"
-        if language == "en"
-        else "complexe legacy-integratie"
-    ) in extracted_text
-    assert "Software Engineer → Senior Software Engineer" in extracted_text
-    assert "OOP" not in extracted_text
-    assert "klantadvies" not in element_text(document.select_one(".summary"))
-    print("Verified", language, "two pages, exact website wording, and achievement.")
+    for element in content:
+        value = normalize(element_text(element))
+        assert value in extracted_text, f"Missing PDF content: {value}"
+    for section in ["samenvatting", "ervaring", "vaardigheden", "tools", "soft-skills"]:
+        heading = element_text(document.select_one(f"#{section} h2"))
+        assert (
+            heading.upper() in extracted_text.upper()
+        ), f"Missing PDF heading: {heading}"
+
+    expected_links = {link["href"] for link in document.select("#profiel .contact a")}
+    actual_links = set()
+    for page in reader.pages:
+        for reference in page.get("/Annots", []):
+            annotation = reference.get_object()
+            action = annotation.get("/A", {})
+            if action.get("/S") == "/URI":
+                actual_links.add(action["/URI"])
+                left, bottom, right, top = annotation["/Rect"]
+                assert (
+                    0 <= left < right <= page.mediabox.width
+                ), "Link exceeds page width"
+                assert (
+                    0 <= bottom < top <= page.mediabox.height
+                ), "Link exceeds page height"
+    assert actual_links == expected_links, "PDF contact links differ from the website"
+    print(
+        f"Verified {language}: {PAGE_COUNT} pages, shared website content and contact links."
+    )
 
 
 def build_resume(language):
