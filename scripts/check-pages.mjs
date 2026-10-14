@@ -26,7 +26,7 @@ const pdfKeys = [
   ...readFileSync(
     resolve(root, 'scripts/build_resume_pdf.py'),
     'utf8',
-  ).matchAll(/\btr\("([\w.]+)"\)/g),
+  ).matchAll(/\btranslate\("([\w.]+)"\)/g),
 ].map((match) => match[1]);
 for (const lang of ['nl', 'en']) {
   const translate = createTranslator(lang);
