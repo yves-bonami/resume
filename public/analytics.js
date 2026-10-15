@@ -61,7 +61,7 @@
         localStorage.setItem(preferenceKey, JSON.stringify(preference));
       } catch {}
       applyPreference(preference);
-      settings.focus();
+      settings.focus({ preventScroll: true });
     });
   }
   window.addEventListener('storage', (event) => {
