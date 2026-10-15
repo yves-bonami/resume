@@ -134,7 +134,9 @@ function renderDocument(lang, body, translate) {
 <script src="/vendor/htmx.min.js" defer></script>
 <script type="module" src="/src/main.js"></script>
 </head>
-<body>${body}</body>
+<body>${body}
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c51bd93b7125487586f4747a19d8c848"}'></script>
+</body>
 </html>
 `;
 }
