@@ -1,0 +1,44 @@
+<details id="privacy" class="privacy-notice">
+  <summary>{{privacy.title}}</summary>
+  <p>
+    {{privacy.controller}}
+    <a href="mailto:yves.bonami@dev.run">yves.bonami@dev.run</a>
+    .
+  </p>
+  <p>
+    {{privacy.hosting}}
+    <a
+      href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+    >
+      {{privacy.githubPolicy}}
+    </a>
+    .
+  </p>
+  <p>
+    {{privacy.analytics}}
+    <a href="https://www.cloudflare.com/privacypolicy/">
+      {{privacy.cloudflarePolicy}}
+    </a>
+    .
+  </p>
+  <p>{{privacy.storage}}</p>
+  <p>{{privacy.providers}}</p>
+  <p>{{privacy.contact}}</p>
+  <p>
+    {{privacy.rights}}
+    <a href="https://www.gegevensbeschermingsautoriteit.be/">
+      {{privacy.authority}}
+    </a>
+    .
+  </p>
+  <p
+    data-analytics-status
+    data-enabled-label="{{privacy.enabled}}"
+    data-disabled-label="{{privacy.disabled}}"
+  >
+    {{privacy.disabled}}
+  </p>
+</details>
+<button type="button" class="privacy-settings" data-analytics-settings hidden>
+  {{privacy.settings}}
+</button>

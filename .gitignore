@@ -8,3 +8,6 @@ dist/
 /en/
 /skills/
 /public/vendor/
+
+/public/sitemap.xml
+/public/robots.txt

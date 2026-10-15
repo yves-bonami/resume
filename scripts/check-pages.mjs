@@ -9,6 +9,7 @@ import {
   render,
   root,
   basePath,
+  siteOrigin,
 } from './pages.mjs';
 
 function checkTranslations() {
@@ -121,6 +122,47 @@ function checkSkillNavigation(html, lang, selected) {
   }
 }
 
+function checkSeoAndPrivacy(html, lang) {
+  const canonical = new URL(basePath + (lang === 'en' ? 'en/' : ''), siteOrigin)
+    .href;
+  const head = html.match(/<head>([\s\S]*?)<\/head>/)[1];
+  const links = [...head.matchAll(/<link\b[^>]*>/g)].map(([tag]) =>
+    attributes(tag),
+  );
+  assert.equal(links.find((link) => link.rel === 'canonical')?.href, canonical);
+  for (const language of ['nl', 'en', 'x-default']) {
+    const expected = new URL(
+      basePath + (language === 'en' ? 'en/' : ''),
+      siteOrigin,
+    ).href;
+    assert.equal(
+      links.find((link) => link.hreflang === language)?.href,
+      expected,
+    );
+  }
+  const schema = JSON.parse(
+    html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1],
+  );
+  assert.equal(schema['@type'], 'ProfilePage');
+  assert.equal(schema.url, canonical);
+  assert.equal(schema.mainEntity['@type'], 'Person');
+  assert.equal(schema.mainEntity.name, 'Yves Bonami');
+  assert.equal(
+    schema.mainEntity.description,
+    createTranslator(lang)('profile.summary'),
+  );
+  assert.ok(
+    !/<script[^>]+src=["']https:\/\/static\.cloudflareinsights\.com/.test(html),
+    'Analytics must load through the consent gate',
+  );
+  assert.ok(html.includes('src="/analytics.js"'));
+  assert.ok(html.includes('id="privacy"'));
+  assert.ok(
+    html.includes('data-analytics-choice="allow"') &&
+      html.includes('data-analytics-choice="decline"'),
+  );
+}
+
 function checkPage(file, lang, selected) {
   const html = readFileSync(file, 'utf8');
   assert.match(html, new RegExp(`<html lang="${lang}">`));
@@ -133,6 +175,7 @@ function checkPage(file, lang, selected) {
     `Unresolved template marker in ${file}`,
   );
   checkSkillNavigation(html, lang, selected);
+  checkSeoAndPrivacy(html, lang);
   // Vite prefixes head assets during build; body URLs already include SITE_BASE.
   checkLocalLinks(html.match(/<head>([\s\S]*?)<\/head>/)[1], file, '/');
   checkLocalLinks(html.match(/<body>([\s\S]*?)<\/body>/)[1], file);
@@ -177,6 +220,19 @@ for (const lang of ['nl', 'en']) {
     `PDF source must include every skill category for ${lang}`,
   );
 }
+const sitemap = readFileSync(resolve(root, 'public/sitemap.xml'), 'utf8');
+const expectedUrls = ['nl', 'en'].map(
+  (lang) => new URL(basePath + (lang === 'en' ? 'en/' : ''), siteOrigin).href,
+);
+assert.deepEqual(
+  [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]),
+  expectedUrls,
+);
+assert.ok(
+  readFileSync(resolve(root, 'public/robots.txt'), 'utf8').includes(
+    new URL(basePath + 'sitemap.xml', siteOrigin).href,
+  ),
+);
 console.log(
   `Verified translations, ${pages.length} generated pages, local links and anchors, HTMX navigation, language/PDF links, and complete PDF source.`,
 );

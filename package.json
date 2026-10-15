@@ -8,10 +8,10 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "generate": "node scripts/pages.mjs",
-    "check": "node scripts/check-pages.mjs",
+    "check": "node scripts/check-pages.mjs && node scripts/check-analytics.mjs",
     "pdf": ".venv/bin/python scripts/build_resume_pdf.py nl && .venv/bin/python scripts/build_resume_pdf.py en",
-    "format": "prettier --write \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/theme.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\"",
-    "format:check": "prettier --check \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/theme.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\""
+    "format": "prettier --write \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/*.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\"",
+    "format:check": "prettier --check \"src/**/*.{html,css,js,json}\" \"scripts/*.mjs\" \"public/*.js\" \"vite.config.js\" \"package*.json\" \"README.md\" \".github/workflows/*.yml\" \".prettierrc.json\""
   },
   "devDependencies": {
     "prettier": "3.9.10",

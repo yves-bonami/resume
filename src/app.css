@@ -1339,6 +1339,70 @@ aside {
   }
 }
 
+/* Privacy and optional analytics */
+.privacy-notice {
+  line-height: 1.6;
+  max-width: 720px;
+}
+.privacy-notice summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.privacy-notice p {
+  margin: 12px 0;
+}
+.privacy-settings,
+.consent-actions button {
+  font: inherit;
+  color: var(--ink);
+  background: var(--page-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.privacy-settings {
+  margin-top: 12px;
+}
+.analytics-consent[hidden],
+.privacy-settings[hidden] {
+  display: none;
+}
+.analytics-consent {
+  position: fixed;
+  z-index: 10;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  width: fit-content;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 18px;
+  color: var(--ink);
+  background: var(--page-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px #0002;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.analytics-consent p {
+  margin: 8px 0 12px;
+}
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.consent-actions button:hover,
+.privacy-settings:hover {
+  border-color: var(--accent);
+}
+@media print {
+  .analytics-consent {
+    display: none;
+  }
+}
+
 /* Motion */
 @keyframes cv-data-flow {
   from {

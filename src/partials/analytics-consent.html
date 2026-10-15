@@ -1,0 +1,21 @@
+<section
+  id="analytics-consent"
+  class="analytics-consent"
+  aria-label="{{consent.title}}"
+  hidden
+>
+  <strong>{{consent.title}}</strong>
+  <p>
+    {{consent.description}}
+    <a href="#privacy" data-open-privacy>{{privacy.title}}</a>
+    .
+  </p>
+  <div class="consent-actions">
+    <button type="button" data-analytics-choice="allow">
+      {{consent.allow}}
+    </button>
+    <button type="button" data-analytics-choice="decline">
+      {{consent.decline}}
+    </button>
+  </div>
+</section>

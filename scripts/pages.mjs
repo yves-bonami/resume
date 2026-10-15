@@ -3,6 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const siteOrigin = 'https://dev.run';
 export const basePath = process.env.SITE_BASE ?? '/';
 if (!basePath.startsWith('/') || !basePath.endsWith('/'))
   throw new Error('SITE_BASE must start and end with /');
@@ -14,6 +15,8 @@ const partialNames = [
   'skills',
   'soft-skills',
   'sidebar',
+  'privacy',
+  'analytics-consent',
 ];
 const partialFiles = Object.fromEntries(
   partialNames.map((name) => [
@@ -119,8 +122,49 @@ function applyBasePath(html) {
   );
 }
 
+function languageUrl(lang) {
+  return new URL(basePath + (lang === 'en' ? 'en/' : ''), siteOrigin).href;
+}
+
+function renderSeo(lang, translate) {
+  const url = languageUrl(lang);
+  const title = `Yves Bonami — Senior .NET Software Engineer | ${translate('meta.title')}`;
+  const description = translate('meta.description');
+  const image = new URL(basePath + 'yves-bonami.jpg', siteOrigin).href;
+  const profile = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url,
+    inLanguage: lang,
+    mainEntity: {
+      '@type': 'Person',
+      '@id': new URL(basePath + '#yves-bonami', siteOrigin).href,
+      name: 'Yves Bonami',
+      jobTitle: 'Senior .NET Software Engineer',
+      description: translate('profile.summary'),
+      url,
+      image,
+      sameAs: ['https://www.linkedin.com/in/yvesbonami/'],
+    },
+  };
+  const structuredData = JSON.stringify(profile).replaceAll('<', '\\u003c');
+  return `<title>${escapeHtml(title)}</title>
+<link rel="canonical" href="${url}">
+<link rel="alternate" hreflang="nl" href="${languageUrl('nl')}">
+<link rel="alternate" hreflang="en" href="${languageUrl('en')}">
+<link rel="alternate" hreflang="x-default" href="${languageUrl('nl')}">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="${escapeHtml(title)}">
+<meta property="og:description" content="${escapeHtml(description)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${image}">
+<meta property="og:image:alt" content="Yves Bonami">
+<meta property="og:locale" content="${lang === 'en' ? 'en_GB' : 'nl_BE'}">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">${structuredData}</script>`;
+}
+
 function renderDocument(lang, body, translate) {
-  const title = `Yves Bonami — ${escapeHtml(translate('meta.title'))}`;
   const description = translate('meta.description');
   return `<!doctype html>
 <html lang="${lang}">
@@ -128,14 +172,15 @@ function renderDocument(lang, body, translate) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="${escapeHtml(description)}">
-<title>${title}</title>
+${renderSeo(lang, translate)}
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/src/app.css">
 <script src="/vendor/htmx.min.js" defer></script>
 <script type="module" src="/src/main.js"></script>
+<script src="/analytics.js" defer></script>
 </head>
 <body>${body}
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c51bd93b7125487586f4747a19d8c848"}'></script>
+
 </body>
 </html>
 `;
@@ -165,7 +210,40 @@ export function render(lang, selected = 0) {
   return renderDocument(lang, applyBasePath(body), translate);
 }
 
+function writeIfChanged(file, content) {
+  mkdirSync(dirname(file), { recursive: true });
+  let previous;
+  try {
+    previous = readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  if (previous !== content) writeFileSync(file, content);
+}
+
+function generateSearchFiles() {
+  const urls = ['nl', 'en']
+    .map((lang) => `  <url><loc>${languageUrl(lang)}</loc></url>`)
+    .join('\n');
+  writeIfChanged(
+    resolve(root, 'public/sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`,
+  );
+  writeIfChanged(
+    resolve(root, 'public/robots.txt'),
+    `User-agent: *
+Allow: /
+Sitemap: ${new URL(basePath + 'sitemap.xml', siteOrigin).href}
+`,
+  );
+}
+
 export function generatePages() {
+  generateSearchFiles();
   const vendor = resolve(root, 'public/vendor');
   mkdirSync(vendor, { recursive: true });
   writeFileSync(
@@ -183,14 +261,7 @@ export function generatePages() {
     ];
     for (const [relative, index] of pages) {
       const file = resolve(root, relative);
-      mkdirSync(dirname(file), { recursive: true });
-      const html = render(lang, index);
-      // Avoid duplicate reloads for unchanged generated pages.
-      let current;
-      try {
-        current = readFileSync(file, 'utf8');
-      } catch {}
-      if (current !== html) writeFileSync(file, html);
+      writeIfChanged(file, render(lang, index));
       paths.push(file);
     }
   }
