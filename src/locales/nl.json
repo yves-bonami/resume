@@ -4,7 +4,7 @@
   "actions.newTab": " (opent in een nieuw tabblad)",
   "consent.allow": "Analytics toestaan",
   "consent.decline": "Analytics weigeren",
-  "consent.description": "Mag Cloudflare geaggregeerde bezoekers- en prestatiestatistieken verzamelen om deze site te verbeteren? Je kunt de site ook zonder analytics gebruiken.",
+  "consent.description": "Mogen we geaggregeerde bezoekers- en prestatiestatistieken verzamelen om deze site te verbeteren? Je kunt de site ook zonder deze optionele statistieken gebruiken.",
   "consent.title": "Optionele analytics",
   "contact.location": "Vorselaar, België",
   "education.degree": "Bachelor Toegepaste Informatica",

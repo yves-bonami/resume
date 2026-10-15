@@ -4,7 +4,7 @@
   "actions.newTab": " (opens in a new tab)",
   "consent.allow": "Allow analytics",
   "consent.decline": "Decline analytics",
-  "consent.description": "May Cloudflare collect aggregate visitor and performance statistics to help improve this site? You can use the site without analytics.",
+  "consent.description": "May we collect aggregate visitor and performance statistics to help improve this site? You can also use the site without these optional statistics.",
   "consent.title": "Optional analytics",
   "contact.location": "Vorselaar, Belgium",
   "education.degree": "Bachelor’s degree in Applied Computer Science",
